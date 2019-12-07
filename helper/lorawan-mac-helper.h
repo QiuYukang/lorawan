@@ -79,6 +79,14 @@ public:
   void SetRegion (enum Regions region);
 
   /**
+   * qiuyukang add 2019.12.07
+   * Set the duty cycle of EU region.
+   * 
+   * \param dutyCycle the duty cycle limitation(0.0~1.0, default 0.01 for EU region). 
+   */
+  void SetDutyCycle(double dutyCycle);
+
+  /**
    * Create the LorawanMac instance and connect it to a device
    *
    * \param node the node on which we wish to create a wifi MAC.
@@ -143,6 +151,8 @@ private:
   Ptr<LoraDeviceAddressGenerator> m_addrGen; //!< Pointer to the address generator to use
   enum DeviceType m_deviceType; //!< The kind of device to install
   enum Regions m_region; //!< The region in which the device will operate
+  // qiuyukang add 2019.12.07
+  double m_dutyCycle; //!< The dutyCycle limitation for EU region.
 };
 
 } // namespace lorawan

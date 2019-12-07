@@ -30,7 +30,7 @@ namespace lorawan {
 
 NS_LOG_COMPONENT_DEFINE ("LorawanMacHelper");
 
-LorawanMacHelper::LorawanMacHelper () : m_region (LorawanMacHelper::EU)
+LorawanMacHelper::LorawanMacHelper () : m_region (LorawanMacHelper::EU),m_dutyCycle(0.01)
 {
 }
 
@@ -68,6 +68,20 @@ void
 LorawanMacHelper::SetRegion (enum LorawanMacHelper::Regions region)
 {
   m_region = region;
+}
+
+// qiuyukang add 2019.12.07
+void
+LorawanMacHelper::SetDutyCycle (double dutyCycle)
+{
+  if (dutyCycle > 0.0 && dutyCycle <= 1.0)
+    {
+      m_dutyCycle = dutyCycle;
+    }
+  else
+    {
+      NS_LOG_WARN ("SetDutyCycle error! Duty cycle must be a double between 0 and 1.");
+    }
 }
 
 Ptr<LorawanMac>
@@ -324,7 +338,8 @@ LorawanMacHelper::ApplyCommonEuConfigurations (Ptr<LorawanMac> lorawanMac) const
   //////////////
 
   LogicalLoraChannelHelper channelHelper;
-  channelHelper.AddSubBand (868, 868.6, 0.01, 14);
+  // channelHelper.AddSubBand (868, 868.6, 0.01, 14);
+  channelHelper.AddSubBand (868, 868.6, m_dutyCycle, 14); // qiuyukang modify 2019.12.07
   channelHelper.AddSubBand (868.7, 869.2, 0.001, 14);
   channelHelper.AddSubBand (869.4, 869.65, 0.1, 27);
 
