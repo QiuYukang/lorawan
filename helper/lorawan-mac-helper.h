@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * Author: Davide Magrin <magrinda@dei.unipd.it>
+ * 
+ * Modified by: QiuYukang <b612n@qq.com>
  */
 
 #ifndef LORAWAN_MAC_HELPER_H
