@@ -57,7 +57,7 @@ NetworkStatus::~NetworkStatus ()
 }
 
 void
-NetworkStatus::AddNode (Ptr<ClassAEndDeviceLorawanMac> edMac)
+NetworkStatus::AddNode (Ptr<EndDeviceLorawanMac> edMac)
 {
   NS_LOG_FUNCTION (this << edMac);
 
@@ -66,8 +66,8 @@ NetworkStatus::AddNode (Ptr<ClassAEndDeviceLorawanMac> edMac)
   if (m_endDeviceStatuses.find (edAddress) == m_endDeviceStatuses.end ())
     {
       // The device doesn't exist. Create new EndDeviceStatus
-      Ptr<EndDeviceStatus> edStatus = CreateObject<EndDeviceStatus>
-        (edAddress, edMac->GetObject<ClassAEndDeviceLorawanMac>());
+      Ptr<EndDeviceStatus> edStatus =
+          CreateObject<EndDeviceStatus> (edAddress, edMac->GetObject<EndDeviceLorawanMac> ());
 
       // Add it to the map
       m_endDeviceStatuses.insert (std::pair<LoraDeviceAddress, Ptr<EndDeviceStatus> >
@@ -181,17 +181,37 @@ NetworkStatus::GetReplyForDevice (LoraDeviceAddress edAddress, int windowNumber)
   // Get the reply packet
   Ptr<EndDeviceStatus> edStatus = m_endDeviceStatuses.find (edAddress)->second;
   Ptr<Packet> packet = edStatus->GetCompleteReplyPacket ();
+  Ptr<ClassAEndDeviceLorawanMac> classAMac =
+      edStatus->GetMac ()->GetObject<ClassAEndDeviceLorawanMac> ();
+  Ptr<ClassCEndDeviceLorawanMac> classCMac =
+      edStatus->GetMac ()->GetObject<ClassCEndDeviceLorawanMac> ();
+  NS_LOG_DEBUG ("Class_A_Mac:" << classAMac << "  Class_C_Mac:" << classCMac);
+  NS_ASSERT (classAMac != 0 || classCMac != 0);
 
   // Apply the appropriate tag
   LoraTag tag;
   switch (windowNumber)
     {
     case 1:
-      tag.SetDataRate (edStatus->GetMac ()->GetFirstReceiveWindowDataRate ());
+      if (classAMac != 0)
+        {
+          tag.SetDataRate (classAMac->GetFirstReceiveWindowDataRate ());
+        }
+      else if (classCMac != 0)
+        {
+          tag.SetDataRate (classCMac->GetFirstReceiveWindowDataRate ());
+        }
       tag.SetFrequency (edStatus->GetFirstReceiveWindowFrequency ());
       break;
     case 2:
-      tag.SetDataRate (edStatus->GetMac ()->GetSecondReceiveWindowDataRate ());
+      if (classAMac != 0)
+        {
+          tag.SetDataRate (classAMac->GetSecondReceiveWindowDataRate ());
+        }
+      else if (classCMac != 0)
+        {
+          tag.SetDataRate (classCMac->GetSecondReceiveWindowDataRate ());
+        }
       tag.SetFrequency (edStatus->GetSecondReceiveWindowFrequency ());
       break;
     }

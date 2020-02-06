@@ -48,7 +48,7 @@ EndDeviceStatus::GetTypeId (void)
 }
 
 EndDeviceStatus::EndDeviceStatus (LoraDeviceAddress endDeviceAddress,
-                                  Ptr<ClassAEndDeviceLorawanMac> endDeviceMac)
+                                  Ptr<EndDeviceLorawanMac> endDeviceMac)
     : m_reply (EndDeviceStatus::Reply ()),
       m_endDeviceAddress (endDeviceAddress),
       m_receivedPacketList (ReceivedPacketList ()),
@@ -172,7 +172,7 @@ EndDeviceStatus::GetReplyPayload (void)
   return m_reply.payload->Copy ();
 }
 
-Ptr<ClassAEndDeviceLorawanMac>
+Ptr<EndDeviceLorawanMac>
 EndDeviceStatus::GetMac (void)
 {
   return m_mac;
