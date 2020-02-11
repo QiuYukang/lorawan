@@ -425,7 +425,7 @@ protected:
    */
   TracedCallback<uint8_t, bool, Time, Ptr<Packet> > m_requiredTxCallback;
 
-private:
+// private:
   /**
    * Randomly shuffle a Ptr<LogicalLoraChannel> vector.
    *

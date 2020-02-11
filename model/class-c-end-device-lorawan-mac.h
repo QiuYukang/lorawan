@@ -77,6 +77,13 @@ public:
   virtual void TxFinished (Ptr<const Packet> packet);
 
   /**
+   * Checking if we are performing the transmission of a new packet or a retransmission, and call SendToPhy function.
+   *
+   * \param packet the packet to send
+   */
+  virtual void DoSend (Ptr<Packet> packet);
+
+  /**
    * Perform operations needed to open the first receive window.
    */
   void OpenFirstReceiveWindow (void);
@@ -191,6 +198,11 @@ private:
    * successful.
    */
   EventId m_secondReceiveWindow;
+
+  /**
+   * The frequency to listen on for the first receive window.
+   */
+  double m_firstReceiveWindowFrequency;
 
   /**
    * The frequency to listen on for the second receive window.

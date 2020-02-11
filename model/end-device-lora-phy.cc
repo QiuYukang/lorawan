@@ -111,6 +111,7 @@ EndDeviceLoraPhy::IsOnFrequency (double frequencyMHz)
 void
 EndDeviceLoraPhy::SetFrequency (double frequencyMHz)
 {
+  NS_LOG_DEBUG("\n---qiu--debug---\n\n Set phy listen on:" << frequencyMHz << "MHz.\n\n");
   m_frequency = frequencyMHz;
 }
 
