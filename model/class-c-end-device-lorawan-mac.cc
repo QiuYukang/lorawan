@@ -46,7 +46,8 @@ ClassCEndDeviceLorawanMac::ClassCEndDeviceLorawanMac ()
       m_receiveDelay1 (Seconds (1)),
       // LoraWAN default
       m_receiveDelay2 (Seconds (2)),
-      m_rx1DrOffset (0)
+      m_rx1DrOffset (0),
+      m_windowRX2BeforeRX1 (true)
 {
   NS_LOG_FUNCTION (this);
 
@@ -293,9 +294,10 @@ ClassCEndDeviceLorawanMac::TxFinished (Ptr<const Packet> packet)
   NS_LOG_FUNCTION_NOARGS ();
 
   // Schedule the opening of the second receive window before opening the first one
-  OpenSecondReceiveWindow ();
+  OpenSecondReceiveWindow (true);
   m_closeSecondWindow = Simulator::Schedule (
       m_receiveDelay1, &ClassCEndDeviceLorawanMac::CloseSecondReceiveWindow, this);
+  m_windowRX2BeforeRX1 = true;
 
   // Schedule the opening of the first receive window
   Simulator::Schedule (m_receiveDelay1, &ClassCEndDeviceLorawanMac::OpenFirstReceiveWindow, this);
@@ -315,6 +317,7 @@ ClassCEndDeviceLorawanMac::DoSend (Ptr<Packet> packet)
   NS_LOG_FUNCTION (this);
 
   // Close the second recieve window before TX
+  NS_LOG_DEBUG("Try to close RX2 window before DoSend.");
   Simulator::Cancel (m_closeSecondWindow);
   CloseSecondReceiveWindow ();
 
@@ -483,13 +486,15 @@ ClassCEndDeviceLorawanMac::CloseFirstReceiveWindow (void)
     }
 
   // Open the second recieve window (fixme:if phy is in 'RX' state?)
-  OpenSecondReceiveWindow ();
+  OpenSecondReceiveWindow (false);
 }
 
 void
-ClassCEndDeviceLorawanMac::OpenSecondReceiveWindow (void)
+ClassCEndDeviceLorawanMac::OpenSecondReceiveWindow (bool beforeRX1)
 {
-  NS_LOG_FUNCTION_NOARGS ();
+  NS_LOG_FUNCTION (this << beforeRX1);
+
+  m_windowRX2BeforeRX1 = beforeRX1;
 
   // Check for receiver status: if it's locked on a packet, don't open this
   // window at all.
@@ -558,6 +563,7 @@ ClassCEndDeviceLorawanMac::CloseSecondReceiveWindow (void)
       break;
     }
 
+  // fixme: How to detect timeout of ack
   if (m_retxParams.waitingAck)
     {
       NS_LOG_DEBUG ("No reception initiated by PHY: rescheduling transmission.");

@@ -90,8 +90,10 @@ public:
 
   /**
    * Perform operations needed to open the second receive window.
+   * 
+   * \param beforeRX1 A flag that identifies the type of RX2 window
    */
-  void OpenSecondReceiveWindow (void);
+  void OpenSecondReceiveWindow (bool beforeRX1);
 
   /**
    * Perform operations needed to close the first receive window.
@@ -218,6 +220,13 @@ private:
    * The RX1DROffset parameter value
    */
   uint8_t m_rx1DrOffset;
+  
+  /**
+   * A flag that identifies the type of RX2 window
+   *  true: RX2 window after Tx finish
+   *  false: RX2 widow after RX1 window close
+   */
+  bool m_windowRX2BeforeRX1;
 
 }; /* ClassCEndDeviceLorawanMac */
 } /* namespace lorawan */
