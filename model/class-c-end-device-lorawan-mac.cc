@@ -297,7 +297,6 @@ ClassCEndDeviceLorawanMac::TxFinished (Ptr<const Packet> packet)
   OpenSecondReceiveWindow (true);
   m_closeSecondWindow = Simulator::Schedule (
       m_receiveDelay1, &ClassCEndDeviceLorawanMac::CloseSecondReceiveWindow, this);
-  m_windowRX2BeforeRX1 = true;
 
   // Schedule the opening of the first receive window
   Simulator::Schedule (m_receiveDelay1, &ClassCEndDeviceLorawanMac::OpenFirstReceiveWindow, this);
@@ -317,7 +316,7 @@ ClassCEndDeviceLorawanMac::DoSend (Ptr<Packet> packet)
   NS_LOG_FUNCTION (this);
 
   // Close the second recieve window before TX
-  NS_LOG_DEBUG("Try to close RX2 window before DoSend.");
+  NS_LOG_DEBUG ("Try to close RX2 window before DoSend.");
   Simulator::Cancel (m_closeSecondWindow);
   CloseSecondReceiveWindow ();
 
@@ -566,6 +565,13 @@ ClassCEndDeviceLorawanMac::CloseSecondReceiveWindow (void)
   // fixme: How to detect timeout of ack
   if (m_retxParams.waitingAck)
     {
+      // If this is the first RX2 recieve window after TxFinish, just don't detect ack_timeout
+      if (m_windowRX2BeforeRX1)
+        {
+          NS_LOG_DEBUG("This is the first time to close RX2 recieve window.");
+          return;
+        }
+
       NS_LOG_DEBUG ("No reception initiated by PHY: rescheduling transmission.");
       if (m_retxParams.retxLeft > 0)
         {
