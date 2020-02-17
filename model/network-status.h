@@ -101,6 +101,12 @@ public:
   Ptr<Packet> GetReplyForDevice (LoraDeviceAddress edAddress, int windowNumber);
 
   /**
+   * Get the data packet for the specified device address.
+   */
+  Ptr<Packet> GetDataPacketForDevice (Ptr<Packet> data, LoraDeviceAddress edAddress, int windowNumber);
+
+
+  /**
    * Get the EndDeviceStatus for the device that sent a packet.
    */
   Ptr<EndDeviceStatus> GetEndDeviceStatus (Ptr<Packet const> packet);

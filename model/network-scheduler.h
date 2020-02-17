@@ -59,6 +59,11 @@ public:
    */
   void OnReceiveWindowOpportunity (LoraDeviceAddress deviceAddress, int window);
 
+  /**
+   * Send data to the end device in the specified recieve window
+   */
+  void DoSend(Ptr<Packet> data, LoraDeviceAddress deviceAddress, int window);
+
 private:
   TracedCallback<Ptr<const Packet> > m_receiveWindowOpened;
   Ptr<NetworkStatus> m_status;

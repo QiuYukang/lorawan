@@ -97,6 +97,13 @@ public:
   bool Receive (Ptr<NetDevice> device, Ptr<const Packet> packet, uint16_t protocol,
                 const Address &address);
 
+  /**
+   * Send a packet to a end device
+   * \param data payload in frame
+   * \param deviceAddress address of end device
+   */
+  void Send(Ptr<Packet> data, LoraDeviceAddress deviceAddress);
+
   Ptr<NetworkStatus> GetNetworkStatus (void);
 
 protected:

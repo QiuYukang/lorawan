@@ -220,6 +220,52 @@ NetworkStatus::GetReplyForDevice (LoraDeviceAddress edAddress, int windowNumber)
   return packet;
 }
 
+Ptr<Packet>
+NetworkStatus::GetDataPacketForDevice (Ptr<Packet> data, LoraDeviceAddress edAddress, int windowNumber)
+{
+  // Get the reply packet
+  Ptr<EndDeviceStatus> edStatus = m_endDeviceStatuses.find (edAddress)->second;
+  edStatus->SetReplyPayload(data);
+  Ptr<Packet> packet = edStatus->GetCompleteReplyPacket ();
+  Ptr<ClassAEndDeviceLorawanMac> classAMac =
+      edStatus->GetMac ()->GetObject<ClassAEndDeviceLorawanMac> ();
+  Ptr<ClassCEndDeviceLorawanMac> classCMac =
+      edStatus->GetMac ()->GetObject<ClassCEndDeviceLorawanMac> ();
+  NS_LOG_DEBUG ("Class_A_Mac:" << classAMac << "  Class_C_Mac:" << classCMac);
+  NS_ASSERT (classAMac != 0 || classCMac != 0);
+
+  // Apply the appropriate tag
+  LoraTag tag;
+  switch (windowNumber)
+    {
+    case 1:
+      if (classAMac != 0)
+        {
+          tag.SetDataRate (classAMac->GetFirstReceiveWindowDataRate ());
+        }
+      else if (classCMac != 0)
+        {
+          tag.SetDataRate (classCMac->GetFirstReceiveWindowDataRate ());
+        }
+      tag.SetFrequency (edStatus->GetFirstReceiveWindowFrequency ());
+      break;
+    case 2:
+      if (classAMac != 0)
+        {
+          tag.SetDataRate (classAMac->GetSecondReceiveWindowDataRate ());
+        }
+      else if (classCMac != 0)
+        {
+          tag.SetDataRate (classCMac->GetSecondReceiveWindowDataRate ());
+        }
+      tag.SetFrequency (edStatus->GetSecondReceiveWindowFrequency ());
+      break;
+    }
+
+  packet->AddPacketTag (tag);
+  return packet;
+}
+
 Ptr<EndDeviceStatus>
 NetworkStatus::GetEndDeviceStatus (Ptr<Packet const> packet)
 {

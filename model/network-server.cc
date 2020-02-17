@@ -181,6 +181,13 @@ NetworkServer::AddComponent (Ptr<NetworkControllerComponent> component)
   m_controller->Install (component);
 }
 
+void NetworkServer::Send(Ptr<Packet> data, LoraDeviceAddress deviceAddress)
+{
+  NS_LOG_FUNCTION(this << data << deviceAddress);
+
+  m_scheduler->DoSend(data, deviceAddress, 2);
+}
+
 Ptr<NetworkStatus>
 NetworkServer::GetNetworkStatus (void)
 {

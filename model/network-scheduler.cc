@@ -143,5 +143,28 @@ NetworkScheduler::OnReceiveWindowOpportunity (LoraDeviceAddress deviceAddress, i
         }
     }
 }
+
+void 
+NetworkScheduler::DoSend(Ptr<Packet> data, LoraDeviceAddress deviceAddress, int window)
+{
+  NS_LOG_FUNCTION(this << data << deviceAddress << window);
+  
+  // Check whether we can send a reply to the device, again by using
+  // NetworkStatus
+  Address gwAddress = m_status->GetBestGatewayForDevice (deviceAddress, window);
+
+  NS_LOG_DEBUG ("Found available gateway with address: " << gwAddress);
+  if(gwAddress == Address())
+  {
+    NS_LOG_DEBUG ("No suitable gateway found.");
+    return;
+  }
+
+  // Create a frame
+  Ptr<Packet> packet = m_status->GetDataPacketForDevice(data, deviceAddress, window);
+  
+  // Send the reply through that gateway
+  m_status->SendThroughGateway (packet, gwAddress);
+}
 }
 }
