@@ -230,7 +230,8 @@ ClassCEndDeviceLorawanMac::Receive (Ptr<Packet const> packet)
         }
     }
 
-  m_phy->GetObject<EndDeviceLoraPhy> ()->SwitchToSleep ();
+  // m_phy->GetObject<EndDeviceLoraPhy> ()->SwitchToSleep ();
+  m_phy->GetObject<EndDeviceLoraPhy> ()->SwitchToStandby ();
 }
 
 void
@@ -622,19 +623,15 @@ ClassCEndDeviceLorawanMac::GetNextClassTransmissionDelay (Time waitingTime)
   if (!m_closeFirstWindow.IsExpired () || !m_closeSecondWindow.IsExpired () ||
       !m_secondReceiveWindow.IsExpired ())
     {
-      NS_LOG_WARN ("Attempting to send when there are receive windows:"
-                   << " Transmission postponed.");
+      NS_LOG_WARN ("Attempting to send when there are receive windows:" <<
+                   " Transmission postponed.");
 
-      //Calculate the duration of a single symbol for the second receive window DR
-      double tSym = pow (2, GetSfFromDataRate (GetSecondReceiveWindowDataRate ())) /
-                    GetBandwidthFromDataRate (GetSecondReceiveWindowDataRate ());
+      // Calculate the duration of a single symbol for the second receive window DR
+      double tSym = pow (2, GetSfFromDataRate (GetSecondReceiveWindowDataRate ())) / GetBandwidthFromDataRate ( GetSecondReceiveWindowDataRate ());
+      // Calculates the closing time of the second receive window
+      Time endSecondRxWindow = Time(m_secondReceiveWindow.GetTs()) + Seconds (m_receiveWindowDurationInSymbols*tSym);
 
-      Time endSecondRxWindow =
-          (m_receiveDelay2 + Seconds (m_receiveWindowDurationInSymbols * tSym));
-      NS_LOG_DEBUG ("---qiu-debug---: waitingTime"
-                    << waitingTime.GetSeconds ()
-                    << "  endSecondRxWindow:" << endSecondRxWindow.GetSeconds ());
-      waitingTime = std::max (waitingTime, endSecondRxWindow);
+      waitingTime = std::max (waitingTime, endSecondRxWindow - Simulator::Now());
     }
 
   return waitingTime;

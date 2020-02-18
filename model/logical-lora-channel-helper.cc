@@ -240,9 +240,9 @@ LogicalLoraChannelHelper::AddEvent (Time duration,
       (timeOnAir / m_aggregatedDutyCycle - timeOnAir);
 
   NS_LOG_DEBUG ("Time on air: " << timeOnAir);
-  NS_LOG_DEBUG ("m_aggregatedDutyCycle: " << m_aggregatedDutyCycle);
+  NS_LOG_DEBUG ("m_aggregatedDutyCycle: " << m_aggregatedDutyCycle << "  dutyCycle: " << dutyCycle);
   NS_LOG_DEBUG ("Current time: " << Simulator::Now ().GetSeconds ());
-  NS_LOG_DEBUG ("Next transmission on this sub-band allowed at time: " <<
+  NS_LOG_DEBUG ("Next transmission on this sub-band(" << channel->GetFrequency() << " Mhz) allowed at time: " <<
                 (subBand->GetNextTransmissionTime ()).GetSeconds ());
   NS_LOG_DEBUG ("Next aggregated transmission allowed at time " <<
                 m_nextAggregatedTransmissionTime.GetSeconds ());

@@ -444,9 +444,11 @@ LorawanMacHelper::ApplyCommonEuConfigurations (Ptr<LorawanMac> lorawanMac) const
 
   LogicalLoraChannelHelper channelHelper;
   // channelHelper.AddSubBand (868, 868.6, 0.01, 14);
-  channelHelper.AddSubBand (868, 868.6, m_dutyCycle, 14); // qiuyukang modify 2019.12.07
-  channelHelper.AddSubBand (868.7, 869.2, 0.001, 14);
-  channelHelper.AddSubBand (869.4, 869.65, 0.1, 27);
+  // channelHelper.AddSubBand (868.7, 869.2, 0.001, 14);
+  // channelHelper.AddSubBand (869.4, 869.65, 0.1, 27);
+  channelHelper.AddSubBand (868, 868.6, m_dutyCycle, 14);
+  channelHelper.AddSubBand (868.7, 869.2, m_dutyCycle, 14);
+  channelHelper.AddSubBand (869.4, 869.65, m_dutyCycle, 27);
 
   //////////////////////
   // Default channels //
