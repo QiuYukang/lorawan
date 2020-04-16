@@ -161,11 +161,19 @@ ClassCEndDeviceLorawanMac::Receive (Ptr<Packet const> packet)
       NS_LOG_DEBUG ("Frame Header: " << fHdr);
 
       // Determine whether this packet is for us
-      bool messageForUs = (m_address == fHdr.GetAddress ());
+      bool messageForUs = (m_address == fHdr.GetAddress () || fHdr.GetAddress().GetNwkID() == 127);
 
       if (messageForUs)
         {
           NS_LOG_INFO ("The message is for us!");
+          if (fHdr.GetAddress().GetNwkID() == 127)
+            {
+              NS_LOG_INFO ("The message is a broadcast frame!");
+            }
+          else
+            {
+              NS_LOG_INFO ("The message is a unicast frame and it is for us!");
+            }
 
           // If it exists, cancel the second receive window event
           // THIS WILL BE GetReceiveWindow()
