@@ -165,6 +165,63 @@ NetworkStatus::GetBestGatewayForDevice (LoraDeviceAddress deviceAddress, int win
   return bestGwAddress;
 }
 
+std::list<Address> 
+NetworkStatus::GetAvalibleGatewaysForBroadcast ()
+{
+  NS_LOG_FUNCTION (this);
+
+  std::list<Address> gwAddress = std::list<Address>();
+  
+  std::map<Address, Ptr<GatewayStatus>>::iterator iter;
+  for (auto &iter : m_gatewayStatuses)
+    {
+      // fixme: this frequency should be set according to different regions, not fixed at 869.525 (ED region)
+      if (iter.second->IsAvailableForTransmission (869.525))
+        {
+          gwAddress.push_back (iter.first);
+        }
+    }
+
+  return gwAddress;
+}
+
+Ptr<Packet> 
+NetworkStatus::CreateBroadcastPacket (Ptr<Packet> data)
+{
+  LoraDeviceAddress address;
+  address.SetNwkID (0x7F);
+  address.SetNwkAddr (0x1FFFFFF);
+  
+  LorawanMacHeader mHdr;
+  mHdr.SetMType (LorawanMacHeader::UNCONFIRMED_DATA_DOWN);
+  mHdr.SetMajor (1);
+
+  LoraFrameHeader fHdr;
+  fHdr.SetAsDownlink ();
+  fHdr.SetFPort (1);  // TODO Use an appropriate frame port based on the application
+  fHdr.SetAddress (address);
+  fHdr.SetAdr (false);
+  fHdr.SetAck (false);
+  fHdr.SetAdrAckReq (0);
+  fHdr.SetFCnt (0);
+  fHdr.SetFPending (false);
+
+  Ptr<Packet> packet = data->Copy();
+
+  // Add packet tag
+  LoraTag tag;
+  // fixme: this frequency should be set according to different regions, not fixed at 869.525 (EU region)
+  tag.SetFrequency (869.525);
+  // fixme: this DataRate should be set according to different regions, not fixed at DR0 (EU region)
+  tag.SetDataRate (0);
+
+  packet->AddHeader (fHdr);
+  packet->AddHeader (mHdr);
+  packet->AddPacketTag (tag);
+
+  return packet;
+}
+
 void
 NetworkStatus::SendThroughGateway (Ptr<Packet> packet, Address gwAddress)
 {

@@ -127,6 +127,11 @@ public:
   static LoraDeviceAddress ConvertFrom (const Address &address);
 
   /**
+   * Determine if an address is a broadcast address.
+   */
+  bool IsBroadcast ();
+
+  /**
    * Set the address as a 32 bit integer.
    */
   void Set (uint32_t address);

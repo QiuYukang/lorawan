@@ -87,6 +87,18 @@ public:
   Address GetBestGatewayForDevice (LoraDeviceAddress deviceAddress, int window);
 
   /**
+   * Get all addresses of gateway which is available for transmission
+   */
+  std::list<Address> GetAvalibleGatewaysForBroadcast ();
+
+  /**
+   * Create a broadcast packet for end devices
+   * 
+   * \param data payload for broadcast frame
+   */
+  Ptr<Packet> CreateBroadcastPacket (Ptr<Packet> data);
+
+  /**
    * Send a packet through a Gateway.
    *
    * This function assumes that the packet is already tagged with a LoraTag

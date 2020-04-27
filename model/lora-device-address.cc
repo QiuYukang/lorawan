@@ -162,6 +162,12 @@ LoraDeviceAddress::ConvertFrom (const Address &address)
   return ad;
 }
 
+bool 
+LoraDeviceAddress::IsBroadcast ()
+{
+  return m_nwkId.Get () == 0x7F && m_nwkAddr.Get () == 0x1FFFFFF;
+}
+
 uint8_t
 LoraDeviceAddress::GetType (void)
 {

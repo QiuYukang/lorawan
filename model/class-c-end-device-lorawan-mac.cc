@@ -137,7 +137,7 @@ ClassCEndDeviceLorawanMac::SendToPhy (Ptr<Packet> packetToSend)
 void
 ClassCEndDeviceLorawanMac::Receive (Ptr<Packet const> packet)
 {
-  NS_LOG_FUNCTION (this << packet);
+  NS_LOG_FUNCTION (this << packet << packet->GetSize());
 
   // Work on a copy of the packet
   Ptr<Packet> packetCopy = packet->Copy ();
@@ -161,18 +161,18 @@ ClassCEndDeviceLorawanMac::Receive (Ptr<Packet const> packet)
       NS_LOG_DEBUG ("Frame Header: " << fHdr);
 
       // Determine whether this packet is for us
-      bool messageForUs = (m_address == fHdr.GetAddress () || fHdr.GetAddress().GetNwkID() == 127);
+      bool messageForUs = (m_address == fHdr.GetAddress () || fHdr.GetAddress().IsBroadcast ());
 
       if (messageForUs)
         {
-          NS_LOG_INFO ("The message is for us!");
-          if (fHdr.GetAddress().GetNwkID() == 127)
+          // NS_LOG_INFO ("The message is for us!");
+          if (fHdr.GetAddress().IsBroadcast ())
             {
-              NS_LOG_INFO ("The message is a broadcast frame!");
+              NS_LOG_INFO ("This is a broadcast frame!");
             }
           else
             {
-              NS_LOG_INFO ("The message is a unicast frame and it is for us!");
+              NS_LOG_INFO ("This is a unicast frame and the msg is for us!");
             }
 
           // If it exists, cancel the second receive window event
@@ -450,7 +450,7 @@ ClassCEndDeviceLorawanMac::CloseFirstReceiveWindow (void)
     case EndDeviceLoraPhy::RX:
       // PHY is receiving: let it finish. The Receive method will switch it back to SLEEP.
       NS_LOG_DEBUG ("PHY is receiving: let it finish. "
-                    << "RX2 recieve window will be open when RxFinish.");
+                    << "RX2 receive window will be open when RxFinish.");
       break;
     case EndDeviceLoraPhy::SLEEP:
       // PHY has received, and the MAC's Receive already put the device to sleep

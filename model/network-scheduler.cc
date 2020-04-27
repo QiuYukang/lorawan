@@ -149,22 +149,42 @@ NetworkScheduler::DoSend(Ptr<Packet> data, LoraDeviceAddress deviceAddress, int 
 {
   NS_LOG_FUNCTION(this << data << deviceAddress << window);
   
-  // Check whether we can send a reply to the device, again by using
-  // NetworkStatus
-  Address gwAddress = m_status->GetBestGatewayForDevice (deviceAddress, window);
+  // Broadcast frame
+  if (deviceAddress.IsBroadcast ()) 
+    {
+      // Find all avalible gateways to send broadcast
+      std::list<Address> gwAddresses = m_status->GetAvalibleGatewaysForBroadcast ();
 
-  NS_LOG_DEBUG ("Found available gateway with address: " << gwAddress);
-  if(gwAddress == Address())
-  {
-    NS_LOG_DEBUG ("No suitable gateway found.");
-    return;
-  }
+      // Create a broadcast frame
+      Ptr<Packet> packet = m_status->CreateBroadcastPacket (data);
 
-  // Create a frame
-  Ptr<Packet> packet = m_status->GetDataPacketForDevice(data, deviceAddress, window);
-  
-  // Send the reply through that gateway
-  m_status->SendThroughGateway (packet, gwAddress);
+      // Send the packet through all avalible gateways
+      for (auto it = gwAddresses.begin(); it != gwAddresses.end(); it++)
+        {
+          NS_LOG_DEBUG ("Send a broadcast frame through gateway " << *it << " .");
+          m_status->SendThroughGateway (packet, *it);
+        }
+    } 
+  // Unicast frame
+  else 
+    {
+      // Check whether we can send a reply to the device, again by using
+      // NetworkStatus
+      Address gwAddress = m_status->GetBestGatewayForDevice (deviceAddress, window);
+
+      NS_LOG_DEBUG ("Found available gateway with address: " << gwAddress);
+      if(gwAddress == Address())
+      {
+        NS_LOG_DEBUG ("No suitable gateway found.");
+        return;
+      }
+
+      // Create a frame
+      Ptr<Packet> packet = m_status->GetDataPacketForDevice(data, deviceAddress, window);
+      
+      // Send the reply through that gateway
+      m_status->SendThroughGateway (packet, gwAddress);
+    }
 }
 }
 }
