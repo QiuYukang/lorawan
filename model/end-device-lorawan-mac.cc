@@ -541,10 +541,11 @@ EndDeviceLorawanMac::GetNextTransmissionDelay (void)
       Ptr<LogicalLoraChannel> logicalChannel = *it;
       double frequency = logicalChannel->GetFrequency ();
 
-      waitingTime = std::min (waitingTime, m_channelHelper.GetWaitingTime (logicalChannel));
+      Time channelWaitTime = m_channelHelper.GetWaitingTime (logicalChannel);
+      waitingTime = std::min (waitingTime, channelWaitTime);
 
       NS_LOG_DEBUG ("Waiting time before the next transmission in channel with frequecy " <<
-                    frequency << " is = " << waitingTime.GetSeconds () << ".");
+                    frequency << " is = " << channelWaitTime.GetSeconds() << ".");
     }
 
   waitingTime = GetNextClassTransmissionDelay (waitingTime);

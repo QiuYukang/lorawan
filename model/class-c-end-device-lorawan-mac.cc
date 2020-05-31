@@ -238,7 +238,7 @@ ClassCEndDeviceLorawanMac::Receive (Ptr<Packet const> packet)
         }
     }
 
-  // RxFinshed, open RX2 recieve window
+  // RxFinshed, open RX2 receive window
   OpenSecondReceiveWindow (false);
 }
 
@@ -290,7 +290,7 @@ ClassCEndDeviceLorawanMac::DoSend (Ptr<Packet> packet)
 {
   NS_LOG_FUNCTION (this);
 
-  // Close the second recieve window before TX
+  // Close the second receive window before TX
   NS_LOG_DEBUG ("Try to close RX2 window before DoSend.");
   Simulator::Cancel (m_closeSecondWindow);
   CloseSecondReceiveWindow ();
@@ -401,7 +401,7 @@ ClassCEndDeviceLorawanMac::OpenFirstReceiveWindow (void)
 {
   NS_LOG_FUNCTION_NOARGS ();
 
-  // If the second recieve window is open, close it?
+  // If the second receive window is open, close it?
   if (m_closeSecondWindow.IsRunning ())
     {
       CloseSecondReceiveWindow ();
@@ -412,7 +412,7 @@ ClassCEndDeviceLorawanMac::OpenFirstReceiveWindow (void)
   m_phy->GetObject<EndDeviceLoraPhy> ()->SwitchToStandby ();
 
   // Set the frequency and sf of the first receive window, because
-  // they are changed when opening the second recieve window.
+  // they are changed when opening the second receive window.
   m_phy->GetObject<EndDeviceLoraPhy> ()->SetFrequency (m_firstReceiveWindowFrequency);
   m_phy->GetObject<EndDeviceLoraPhy> ()->SetSpreadingFactor (
       GetSfFromDataRate (GetFirstReceiveWindowDataRate ()));
@@ -455,12 +455,12 @@ ClassCEndDeviceLorawanMac::CloseFirstReceiveWindow (void)
     case EndDeviceLoraPhy::SLEEP:
       // PHY has received, and the MAC's Receive already put the device to sleep
       NS_LOG_DEBUG ("PHY is in SLEEP."
-                    << "Open RX2 recieve window.");
+                    << "Open RX2 receive window.");
       OpenSecondReceiveWindow (false);
       break;
     case EndDeviceLoraPhy::STANDBY:
       NS_LOG_DEBUG ("PHY is in STANDY."
-                    << "Still open RX2 recieve window.");
+                    << "Still open RX2 receive window.");
       OpenSecondReceiveWindow (false);
       break;
     }
@@ -493,7 +493,7 @@ ClassCEndDeviceLorawanMac::OpenSecondReceiveWindow (bool beforeRX1)
   m_phy->GetObject<EndDeviceLoraPhy> ()->SetSpreadingFactor (
       GetSfFromDataRate (m_secondReceiveWindowDataRate));
 
-  // Close the second recieve window after a long long time
+  // Close the second receive window after a long long time
   if (!beforeRX1)
     {
       m_closeSecondWindow = Simulator::Schedule (
@@ -533,10 +533,10 @@ ClassCEndDeviceLorawanMac::CloseSecondReceiveWindow (void)
   // fixme: How to detect timeout of ack
   if (m_retxParams.waitingAck)
     {
-      // If this is the first RX2 recieve window after TxFinish, just don't detect ack_timeout
+      // If this is the first RX2 receive window after TxFinish, just don't detect ack_timeout
       if (m_windowRX2BeforeRX1)
         {
-          NS_LOG_DEBUG ("This is the first time to close RX2 recieve window.");
+          NS_LOG_DEBUG ("This is the first time to close RX2 receive window.");
           return;
         }
 
@@ -587,29 +587,8 @@ ClassCEndDeviceLorawanMac::GetNextClassTransmissionDelay (Time waitingTime)
 {
   NS_LOG_FUNCTION_NOARGS ();
 
-  // fixme: when RX2 recieve window(m_RX2BeforeRx1=false) is open, how to get waitingTime?
-  // actually, now we just return waitTime since m_secondReceiveWindow = -inf
-  // if (!m_closeFirstWindow.IsExpired () || !m_closeSecondWindow.IsExpired () ||
-  //     !m_secondReceiveWindow.IsExpired ())
-  //   {
-  //     NS_LOG_WARN ("Attempting to send when there are receive windows:"
-  //                  << " Transmission postponed.");
-
-  //     // Calculate the duration of a single symbol for the second receive window DR
-  //     double tSym = pow (2, GetSfFromDataRate (GetSecondReceiveWindowDataRate ())) /
-  //                   GetBandwidthFromDataRate (GetSecondReceiveWindowDataRate ());
-  //     // Calculates the closing time of the second receive window
-  //     Time endSecondRxWindow =
-  //         Time (m_secondReceiveWindow.GetTs ()) + Seconds (m_receiveWindowDurationInSymbols * tSym);
-
-  //     waitingTime = std::max (waitingTime, endSecondRxWindow - Simulator::Now ());
-  //   }
-
-  // return waitingTime;
-
-
   // This is a new packet from APP; it can not be sent until the end of the
-  // second receive window (if the second recieve window has not closed yet)
+  // second receive window (if the second receive window has not closed yet)
   if (!m_retxParams.waitingAck)
     {
       if (!m_closeFirstWindow.IsExpired () ||
@@ -623,7 +602,7 @@ ClassCEndDeviceLorawanMac::GetNextClassTransmissionDelay (Time waitingTime)
           // Compute the closing time of the second receive window
           Time endSecondRxWindow = Time(m_secondReceiveWindow.GetTs()) + Seconds (m_receiveWindowDurationInSymbols*tSym);
 
-          // fixme: when RX2 recieve window(m_RX2BeforeRx1=false) is open, how to get waitingTime?
+          // fixme: when RX2 receive window(m_RX2BeforeRx1=false) is open, how to get waitingTime?
           // Actually, we just return waitTime since m_secondReceiveWindow = -inf now.
 
           NS_LOG_DEBUG("Duration until endSecondRxWindow for new transmission:" << (endSecondRxWindow - Simulator::Now()).GetSeconds());
