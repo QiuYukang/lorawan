@@ -112,18 +112,19 @@ LorawanMacHelper::Create (Ptr<Node> node, Ptr<NetDevice> device) const
       Ptr<ClassAEndDeviceLorawanMac> edMac = mac->GetObject<ClassAEndDeviceLorawanMac> ();
       switch (m_region)
         {
-        case LorawanMacHelper::EU:
-          {
+          case LorawanMacHelper::EU: {
             ConfigureForEuRegion (edMac);
             break;
           }
-        case LorawanMacHelper::ALOHA:
-          {
+          case LorawanMacHelper::SingleChannel: {
+            ConfigureForSingleChannelRegion (edMac);
+            break;
+          }
+          case LorawanMacHelper::ALOHA: {
             ConfigureForAlohaRegion (edMac);
             break;
           }
-        default:
-          {
+          default: {
             NS_LOG_ERROR ("This region isn't supported yet!");
             break;
           }
@@ -156,18 +157,19 @@ LorawanMacHelper::Create (Ptr<Node> node, Ptr<NetDevice> device) const
       Ptr<GatewayLorawanMac> gwMac = mac->GetObject<GatewayLorawanMac> ();
       switch (m_region)
         {
-        case LorawanMacHelper::EU:
-          {
+          case LorawanMacHelper::EU: {
             ConfigureForEuRegion (gwMac);
             break;
           }
-        case LorawanMacHelper::ALOHA:
-          {
+          case LorawanMacHelper::SingleChannel: {
+            ConfigureForSingleChannelRegion (gwMac);
+            break;
+          }
+          case LorawanMacHelper::ALOHA: {
             ConfigureForAlohaRegion (gwMac);
             break;
           }
-        default:
-          {
+          default: {
             NS_LOG_ERROR ("This region isn't supported yet!");
             break;
           }
@@ -268,23 +270,14 @@ LorawanMacHelper::ConfigureForAlohaRegion (Ptr<GatewayLorawanMac> gwMac) const
       NS_LOG_DEBUG ("Resetting reception paths");
       gwPhy->ResetReceptionPaths ();
 
-      std::vector<double> frequencies;
-      frequencies.push_back (868.1);
-
-      std::vector<double>::iterator it = frequencies.begin ();
-
       int receptionPaths = 0;
       int maxReceptionPaths = 1;
       while (receptionPaths < maxReceptionPaths)
         {
-          if (it == frequencies.end ())
-            {
-              it = frequencies.begin ();
-            }
-          gwPhy->GetObject<GatewayLoraPhy> ()->AddReceptionPath (*it);
-          ++it;
+          gwPhy->GetObject<GatewayLoraPhy> ()->AddReceptionPath ();
           receptionPaths++;
         }
+      gwPhy->AddFrequency (868.1);
     }
 }
 
@@ -416,18 +409,16 @@ LorawanMacHelper::ConfigureForEuRegion (Ptr<GatewayLorawanMac> gwMac) const
       frequencies.push_back (868.3);
       frequencies.push_back (868.5);
 
-      std::vector<double>::iterator it = frequencies.begin ();
+      for (auto &f : frequencies)
+        {
+          gwPhy->AddFrequency (f);
+        }
 
       int receptionPaths = 0;
       int maxReceptionPaths = 8;
       while (receptionPaths < maxReceptionPaths)
         {
-          if (it == frequencies.end ())
-            {
-              it = frequencies.begin ();
-            }
-          gwPhy->GetObject<GatewayLoraPhy> ()->AddReceptionPath (*it);
-          ++it;
+          gwPhy->GetObject<GatewayLoraPhy> ()->AddReceptionPath ();
           receptionPaths++;
         }
     }
@@ -459,6 +450,114 @@ LorawanMacHelper::ApplyCommonEuConfigurations (Ptr<LorawanMac> lorawanMac) const
   channelHelper.AddChannel (lc1);
   channelHelper.AddChannel (lc2);
   channelHelper.AddChannel (lc3);
+
+  lorawanMac->SetLogicalLoraChannelHelper (channelHelper);
+
+  ///////////////////////////////////////////////
+  // DataRate -> SF, DataRate -> Bandwidth     //
+  // and DataRate -> MaxAppPayload conversions //
+  ///////////////////////////////////////////////
+  lorawanMac->SetSfForDataRate (std::vector<uint8_t>{12, 11, 10, 9, 8, 7, 7});
+  lorawanMac->SetBandwidthForDataRate (
+      std::vector<double>{125000, 125000, 125000, 125000, 125000, 125000, 250000});
+  lorawanMac->SetMaxAppPayloadForDataRate (
+      std::vector<uint32_t>{59, 59, 59, 123, 230, 230, 230, 230});
+}
+
+///////////////////////////////
+
+void
+LorawanMacHelper::ConfigureForSingleChannelRegion (Ptr<ClassAEndDeviceLorawanMac> edMac) const
+{
+  NS_LOG_FUNCTION_NOARGS ();
+
+  ApplyCommonSingleChannelConfigurations (edMac);
+
+  /////////////////////////////////////////////////////
+  // TxPower -> Transmission power in dBm conversion //
+  /////////////////////////////////////////////////////
+  edMac->SetTxDbmForTxPower (std::vector<double>{16, 14, 12, 10, 8, 6, 4, 2});
+
+  ////////////////////////////////////////////////////////////
+  // Matrix to know which DataRate the GW will respond with //
+  ////////////////////////////////////////////////////////////
+  LorawanMac::ReplyDataRateMatrix matrix = {{{{0, 0, 0, 0, 0, 0}},
+                                             {{1, 0, 0, 0, 0, 0}},
+                                             {{2, 1, 0, 0, 0, 0}},
+                                             {{3, 2, 1, 0, 0, 0}},
+                                             {{4, 3, 2, 1, 0, 0}},
+                                             {{5, 4, 3, 2, 1, 0}},
+                                             {{6, 5, 4, 3, 2, 1}},
+                                             {{7, 6, 5, 4, 3, 2}}}};
+  edMac->SetReplyDataRateMatrix (matrix);
+
+  /////////////////////
+  // Preamble length //
+  /////////////////////
+  edMac->SetNPreambleSymbols (8);
+
+  //////////////////////////////////////
+  // Second receive window parameters //
+  //////////////////////////////////////
+  edMac->SetSecondReceiveWindowDataRate (0);
+  edMac->SetSecondReceiveWindowFrequency (869.525);
+}
+
+void
+LorawanMacHelper::ConfigureForSingleChannelRegion (Ptr<GatewayLorawanMac> gwMac) const
+{
+  NS_LOG_FUNCTION_NOARGS ();
+
+  ///////////////////////////////
+  // ReceivePath configuration //
+  ///////////////////////////////
+  Ptr<GatewayLoraPhy> gwPhy =
+      gwMac->GetDevice ()->GetObject<LoraNetDevice> ()->GetPhy ()->GetObject<GatewayLoraPhy> ();
+
+  ApplyCommonEuConfigurations (gwMac);
+
+  if (gwPhy) // If cast is successful, there's a GatewayLoraPhy
+    {
+      NS_LOG_DEBUG ("Resetting reception paths");
+      gwPhy->ResetReceptionPaths ();
+
+      std::vector<double> frequencies;
+      frequencies.push_back (868.1);
+
+      for (auto &f : frequencies)
+        {
+          gwPhy->AddFrequency (f);
+        }
+
+      int receptionPaths = 0;
+      int maxReceptionPaths = 8;
+      while (receptionPaths < maxReceptionPaths)
+        {
+          gwPhy->GetObject<GatewayLoraPhy> ()->AddReceptionPath ();
+          receptionPaths++;
+        }
+    }
+}
+
+void
+LorawanMacHelper::ApplyCommonSingleChannelConfigurations (Ptr<LorawanMac> lorawanMac) const
+{
+  NS_LOG_FUNCTION_NOARGS ();
+
+  //////////////
+  // SubBands //
+  //////////////
+
+  LogicalLoraChannelHelper channelHelper;
+  channelHelper.AddSubBand (868, 868.6, 0.01, 14);
+  channelHelper.AddSubBand (868.7, 869.2, 0.001, 14);
+  channelHelper.AddSubBand (869.4, 869.65, 0.1, 27);
+
+  //////////////////////
+  // Default channels //
+  //////////////////////
+  Ptr<LogicalLoraChannel> lc1 = CreateObject<LogicalLoraChannel> (868.1, 0, 5);
+  channelHelper.AddChannel (lc1);
 
   lorawanMac->SetLogicalLoraChannelHelper (channelHelper);
 

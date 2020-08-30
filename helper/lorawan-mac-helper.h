@@ -48,7 +48,18 @@ public:
   /**
    * Define the operational region.
    */
-  enum Regions { EU, US, China, EU433MHz, Australia, CN, AS923MHz, SouthKorea, ALOHA };
+  enum Regions {
+    EU,
+    US,
+    China,
+    EU433MHz,
+    Australia,
+    CN,
+    AS923MHz,
+    SouthKorea,
+    SingleChannel,
+    ALOHA
+  };
 
   /**
    * Create a mac helper without any parameter set. The user must set
@@ -138,6 +149,22 @@ private:
    * ClassAEndDeviceLorawanMac classes.
    */
   void ApplyCommonEuConfigurations (Ptr<LorawanMac> lorawanMac) const;
+
+  /**
+   * Perform region-specific configurations for the SINGLECHANNEL band.
+   */
+  void ConfigureForSingleChannelRegion (Ptr<ClassAEndDeviceLorawanMac> edMac) const;
+
+  /**
+   * Perform region-specific configurations for the SINGLECHANNEL band.
+   */
+  void ConfigureForSingleChannelRegion (Ptr<GatewayLorawanMac> gwMac) const;
+
+  /**
+   * Apply configurations that are common both for the GatewayLorawanMac and the
+   * ClassAEndDeviceLorawanMac classes.
+   */
+  void ApplyCommonSingleChannelConfigurations (Ptr<LorawanMac> lorawanMac) const;
 
   /**
    * Perform region-specific configurations for the ALOHA band.
